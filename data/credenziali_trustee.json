@@ -1,0 +1,34 @@
+{
+    "trustees": [
+        {
+            "username": "trustee1",
+            "salt": "nMS2G7rPT7bofJaT3/UOeg==",
+            "password_hash": "koUz8p3ghz1D8LtbWYBN6n8pHptAl3OiZMao9RmROB8=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "username": "trustee2",
+            "salt": "uGfEACBJgVHX41j+A2lupg==",
+            "password_hash": "6oj9XmM+te0siUVjRgAq5Vogi3yW4vlBHndUxjBEHiE=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "username": "trustee3",
+            "salt": "YZDlUYKLRJVDWO2VqoJ+BQ==",
+            "password_hash": "b+fD6tVyD+9FfMrEPgqFTSnay4poKc0h4z+lqdPgkRo=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "username": "trustee4",
+            "salt": "2qXirLfdIoURdW1CbQCq3Q==",
+            "password_hash": "mGMGULlzKV6wY2W6/Fsx6xTj1RlJESpUAYMe3dh8tCk=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "username": "trustee5",
+            "salt": "SvRK8OKO3U8HEfHo+eOL9A==",
+            "password_hash": "8doVrhiTVs+1Ge5DntqoY+c0YF1coRlKQUVJbweC04E=",
+            "pbkdf2_iterations": 200000
+        }
+    ]
+}

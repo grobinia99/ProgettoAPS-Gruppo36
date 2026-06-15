@@ -1,0 +1,41 @@
+# Ambiente virtuale
+/.venv/
+/venv/
+/env/
+
+# PyCharm
+/.idea/
+*.iml
+
+# Cache Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# File temporanei
+*.log
+*.tmp
+*.bak
+
+# Output generati dal prototipo
+/data/ricevuta_*.json
+/data/bulletin_board.json
+/data/checkpoint_bacheca.json
+/data/chiusura_urne.json
+/data/risultato.json
+/data/registro_sa.json
+/data/lista_elettorale_firmata.json
+/data/parametri_pubblici.json
+/data/trustee_shares.json
+
+# Chiavi e materiale sensibile
+*.pem
+*.key
+*_private.pem
+*_private.key

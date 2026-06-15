@@ -1,0 +1,34 @@
+{
+    "studenti": [
+        {
+            "matricola": "IE22700271",
+            "salt": "g0urC5tAC6V+lEH0DixcLQ==",
+            "password_hash": "JwmCqQgbAwXPkVBbl0IkctREpYd+F/OXANz5WrFtUe0=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "matricola": "IE22700302",
+            "salt": "+PikAHiY7aUBKfkO+7Mqag==",
+            "password_hash": "4irlSjL/cyy3zvcaDrY2MzI6uP8zach4aao5OQ8l3wY=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "matricola": "IE22700100",
+            "salt": "IP122zYa8X4WD3mi0C+A1g==",
+            "password_hash": "PT/XjzDXabl5MJCoUps9LZRJoVo1YGzm/tQX8L1ltjA=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "matricola": "IE22700200",
+            "salt": "jnHVtw1RuoBzXBCpovsZgA==",
+            "password_hash": "B2QvFD5LSe9k3U6rWL5EWL2LGhCGf3HIUMiFnnqz8a4=",
+            "pbkdf2_iterations": 200000
+        },
+        {
+            "matricola": "IE22700300",
+            "salt": "3ohELz7N5MYOhAPBPpfl8w==",
+            "password_hash": "N/e4X0EIT3pJgzua/dF6HEi+GorGGofJqagThbTlgaA=",
+            "pbkdf2_iterations": 200000
+        }
+    ]
+}
