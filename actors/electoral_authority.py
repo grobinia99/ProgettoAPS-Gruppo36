@@ -1,6 +1,5 @@
 import json
 import hmac
-import secrets
 import threading
 from dataclasses import asdict
 from pathlib import Path
@@ -14,15 +13,17 @@ from config import (
     PROTOCOL_VERSION, PUBLIC_PARAMETERS_FILE, RESULT_FILE, THRESHOLD,
     TRUSTEE_SHARES_FILE, VOTAZIONI_FINE, VOTAZIONI_INIZIO,
 )
-from crypto.base_utils import b64d, b64e, canonical_json, now_dt, now_iso, parse_dt, sha256_hex
+from crypto.base_utils import b64d, canonical_json, now_dt, now_iso, parse_dt, sha256_hex
 from crypto.merkle import verify_merkle_proof
 from crypto.rsa_utils import (
-    load_private_key, load_public_key, private_key_to_pem, public_key_to_pem, rsa_decrypt,
-    rsa_encrypt, rsa_keygen, sign_json, verify_json_signature,
+    load_private_key, load_public_key, private_key_to_pem, public_key_to_pem, rsa_decrypt, rsa_keygen, sign_json, verify_json_signature,
 )
 from crypto.shamir import shamir_reconstruct, shamir_split
 from models import (
-    BallotMessage, BallotRecord, HybridCiphertext, SignedReceipt, SignedToken,
+    BallotMessage,
+    BallotRecord,
+    SignedReceipt,
+    SignedToken,
 )
 from storage.json_utils import atomic_write_json
 
@@ -152,42 +153,6 @@ class ElectoralAuthority:
             and not self.bulletin.closed
         )
 
-    def encrypt_vote(self, vote: str) -> HybridCiphertext:
-        """
-        Cifra la scheda usando la chiave pubblica
-        di decifrazione dell'AE.
-
-        Nel prototipo locale il metodo è mantenuto
-        nella classe ElectoralAuthority per semplicità.
-        """
-
-        if vote not in {"SI", "NO"}:
-            raise ValueError("Voto non valido")
-
-        payload = {
-            "election_id": ELECTION_ID,
-            "vote": vote,
-            "ballot_nonce": secrets.token_hex(16),
-            "created_at": now_iso(),
-            "protocol_version": PROTOCOL_VERSION,
-        }
-
-        session_key = Fernet.generate_key()
-
-        encrypted_ballot = Fernet(session_key).encrypt(
-            canonical_json(payload)
-        )
-
-        encrypted_key = rsa_encrypt(
-            self.decryption_public_key,
-            session_key,
-        )
-
-        return HybridCiphertext(
-            encrypted_key=encrypted_key,
-            encrypted_ballot=b64e(encrypted_ballot),
-        )
-
     @staticmethod
     def _ballot_signature_payload(
         signed_token: SignedToken,
@@ -205,35 +170,6 @@ class ElectoralAuthority:
             "request_nonce": request_nonce,
             "protocol_version": protocol_version,
         }
-
-    def build_ballot_message(
-        self,
-        signed_token: SignedToken,
-        ciphertext: HybridCiphertext,
-        pseudonymous_private_key,
-    ) -> BallotMessage:
-        request_nonce = secrets.token_hex(16)
-        signature_payload = self._ballot_signature_payload(
-            signed_token=signed_token,
-            election_id=ELECTION_ID,
-            encrypted_key=ciphertext.encrypted_key,
-            encrypted_ballot=ciphertext.encrypted_ballot,
-            request_nonce=request_nonce,
-            protocol_version=PROTOCOL_VERSION,
-        )
-        ballot_signature = sign_json(
-            pseudonymous_private_key,
-            signature_payload,
-        )
-        return BallotMessage(
-            signed_token=signed_token,
-            election_id=ELECTION_ID,
-            encrypted_key=ciphertext.encrypted_key,
-            encrypted_ballot=ciphertext.encrypted_ballot,
-            request_nonce=request_nonce,
-            protocol_version=PROTOCOL_VERSION,
-            ballot_signature=ballot_signature,
-        )
 
     def _validate_message_structure(self, message: BallotMessage) -> bool:
         fields = [

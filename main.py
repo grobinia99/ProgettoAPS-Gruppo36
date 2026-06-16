@@ -14,6 +14,7 @@ from crypto.password_utils import verify_password
 from crypto.rsa_utils import public_key_to_pem, rsa_keygen
 from services.credentials import create_demo_credentials_files
 from storage.json_utils import load_credentials
+from clients.voter_client import VoterClient
 
 
 def login_ae_interactive() -> bool:
@@ -107,11 +108,18 @@ def vote_flow(sa: AuthenticationAuthority, ae: ElectoralAuthority) -> None:
         print("Scelta non valida")
         return
 
-    ciphertext = ae.encrypt_vote("SI" if choice == "1" else "NO")
-    message = ae.build_ballot_message(
+    voter_client = VoterClient(
+        ae.decryption_public_key,
+        pseudonymous_private_key,
+    )
+
+    ciphertext = voter_client.encrypt_vote(
+        "SI" if choice == "1" else "NO"
+    )
+
+    message = voter_client.build_ballot_message(
         token,
         ciphertext,
-        pseudonymous_private_key,
     )
     receipt = ae.receive_ballot(message)
     if receipt:
@@ -166,49 +174,119 @@ trustee5 / trusteexyz
 """)
 
 
-def demo_complete(sa: AuthenticationAuthority, ae: ElectoralAuthority) -> bool:
+def demo_complete(
+    sa: AuthenticationAuthority,
+    ae: ElectoralAuthority,
+) -> bool:
     scenarios = [
         ("IE22700271", "password123", "SI"),
         ("IE22700302", "password456", "NO"),
         ("IE22700100", "password789", "SI"),
     ]
+
     receipt_files: List[Path] = []
 
     for matricola, password, vote in scenarios:
+        # La coppia pseudonima viene generata
+        # sul lato dell'elettore.
         pseudonymous_private_key = rsa_keygen()
+
         pseudonymous_public_key = public_key_to_pem(
             pseudonymous_private_key.public_key()
         )
+
         token = sa.login_and_issue_token(
             matricola,
             password,
             ELECTION_ID,
             pseudonymous_public_key,
         )
+
         if token is None:
+            print(
+                "Emissione del token fallita per:",
+                matricola,
+            )
             return False
-        message = ae.build_ballot_message(
-            token,
-            ae.encrypt_vote(vote),
+
+        # Il VoterClient rappresenta il dispositivo
+        # dell'elettore e riceve soltanto la chiave
+        # pubblica di decifrazione dell'AE.
+        voter_client = VoterClient(
+            ae.decryption_public_key,
             pseudonymous_private_key,
         )
-        receipt = ae.receive_ballot(message)
-        if receipt is None:
-            return False
-        receipt_files.append(
-            DATA_DIR / f"ricevuta_{receipt.receipt['ballot_id']}.json"
+
+        # La preferenza viene cifrata nel client.
+        ciphertext = voter_client.encrypt_vote(
+            vote
         )
 
-    for receipt_file in receipt_files:
-        if not ae.verify_receipt(receipt_file):
-            print("Verifica individuale fallita:", receipt_file)
+        # Il messaggio cifrato viene firmato
+        # con la chiave privata pseudonima.
+        message = voter_client.build_ballot_message(
+            token,
+            ciphertext,
+        )
+
+        # L'AE riceve soltanto il messaggio già
+        # cifrato e firmato.
+        receipt = ae.receive_ballot(
+            message
+        )
+
+        if receipt is None:
+            print(
+                "Registrazione del voto fallita per:",
+                matricola,
+            )
             return False
 
-    ae.close_election(force_demo=True)
-    result = ae.scrutinio(["trustee1", "trustee2", "trustee3"])
+        receipt_files.append(
+            DATA_DIR
+            / (
+                "ricevuta_"
+                f"{receipt.receipt['ballot_id']}.json"
+            )
+        )
+
+    # Verifica individuale di tutte le ricevute.
+    for receipt_file in receipt_files:
+        if not ae.verify_receipt(
+            receipt_file
+        ):
+            print(
+                "Verifica individuale fallita:",
+                receipt_file,
+            )
+            return False
+
+    # Chiusura anticipata soltanto per la demo.
+    ae.close_election(
+        force_demo=True
+    )
+
+    # Ricostruzione della chiave tramite
+    # almeno tre trustee distinti.
+    result = ae.scrutinio(
+        [
+            "trustee1",
+            "trustee2",
+            "trustee3",
+        ]
+    )
+
     if result is None:
+        print(
+            "Scrutinio non completato"
+        )
         return False
-    print_result(result)
+
+    print_result(
+        result
+    )
+
+    # Verifica pubblica finale.
     return ae.universal_verify()
 
 
