@@ -10,6 +10,10 @@ THRESHOLD = 3
 PBKDF2_ITERATIONS = 200_000
 SHAMIR_FIELD = 257
 MAX_FIELD_LENGTH = 50_000
+# Ritardo casuale simulato tra costruzione e invio del voto.
+SIMULATE_RANDOM_SEND_DELAY = True
+MIN_SEND_DELAY_SECONDS = 1.0
+MAX_SEND_DELAY_SECONDS = 4.0
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"

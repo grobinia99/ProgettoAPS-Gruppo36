@@ -121,6 +121,7 @@ def vote_flow(sa: AuthenticationAuthority, ae: ElectoralAuthority) -> None:
         token,
         ciphertext,
     )
+    voter_client.wait_before_send()
     receipt = ae.receive_ballot(message)
     if receipt:
         print("Voto registrato")
@@ -227,6 +228,9 @@ def demo_complete(
         message = voter_client.build_ballot_message(
             token,
             ciphertext,
+        )
+        voter_client.wait_before_send(
+            enabled=False
         )
 
         # L'AE riceve soltanto il messaggio già

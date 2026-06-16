@@ -1,8 +1,15 @@
 import secrets
+import time
 
 from cryptography.fernet import Fernet
 
-from config import ELECTION_ID, PROTOCOL_VERSION
+from config import (
+    ELECTION_ID,
+    MAX_SEND_DELAY_SECONDS,
+    MIN_SEND_DELAY_SECONDS,
+    PROTOCOL_VERSION,
+    SIMULATE_RANDOM_SEND_DELAY,
+)
 from crypto.base_utils import (
     b64e,
     canonical_json,
@@ -149,3 +156,43 @@ class VoterClient:
             protocol_version=PROTOCOL_VERSION,
             ballot_signature=ballot_signature,
         )
+
+    def wait_before_send(
+            self,
+            enabled: bool = SIMULATE_RANDOM_SEND_DELAY,
+    ) -> float:
+        """
+        Simula un ritardo casuale prima dell'invio del voto.
+
+        Restituisce il numero di secondi attesi.
+        """
+
+        if not enabled:
+            return 0.0
+
+        if MIN_SEND_DELAY_SECONDS < 0:
+            raise ValueError(
+                "Il ritardo minimo non può essere negativo"
+            )
+
+        if MAX_SEND_DELAY_SECONDS < MIN_SEND_DELAY_SECONDS:
+            raise ValueError(
+                "Il ritardo massimo deve essere "
+                "maggiore o uguale al minimo"
+            )
+
+        random_generator = secrets.SystemRandom()
+
+        delay = random_generator.uniform(
+            MIN_SEND_DELAY_SECONDS,
+            MAX_SEND_DELAY_SECONDS,
+        )
+
+        print(
+            "Invio del voto cifrato tra "
+            f"{delay:.2f} secondi..."
+        )
+
+        time.sleep(delay)
+
+        return delay
