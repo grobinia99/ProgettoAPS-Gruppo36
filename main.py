@@ -141,7 +141,90 @@ def show_board(ae: ElectoralAuthority) -> None:
             f"- #{record.sequence_number} {record.ballot_id} "
             f"{record.record_hash[:20]}..."
         )
+def verify_roster_inclusion_flow(
+    segreteria: Segreteria,
+) -> None:
+    print(
+        "\n=== VERIFICA INCLUSIONE "
+        "NELLA LISTA ELETTORALE ==="
+    )
 
+    matricola = input(
+        "Inserisci la matricola da verificare: "
+    ).strip()
+
+    if not matricola:
+        print("Matricola non valida")
+        return
+
+    result = (
+        segreteria.verify_student_inclusion(
+            matricola
+        )
+    )
+
+    print(
+        "\nFile lista presente:",
+        result["roster_file_exists"],
+    )
+    print(
+        "Chiave pubblica Segreteria valida:",
+        result["public_key_valid"],
+    )
+    print(
+        "Firma della lista valida:",
+        result["signature_valid"],
+    )
+    print(
+        "Election ID valido:",
+        result["election_id_valid"],
+    )
+    print(
+        "Versione protocollo valida:",
+        result["protocol_version_valid"],
+    )
+    print(
+        "Merkle root valida:",
+        result["merkle_root_valid"],
+    )
+    print(
+        "Matricola presente:",
+        result["included"],
+    )
+    print(
+        "Merkle proof valida:",
+        result["merkle_proof_valid"],
+    )
+
+    if result["error"]:
+        print(
+            "Errore:",
+            result["error"],
+        )
+
+    if result["overall_valid"]:
+        print(
+            "\nVERIFICA SUPERATA: "
+            "la matricola è inclusa nella lista "
+            "elettorale autentica e integra."
+        )
+    elif (
+        result["signature_valid"]
+        and result["merkle_root_valid"]
+        and not result["included"]
+    ):
+        print(
+            "\nVERIFICA FALLITA: "
+            "la lista è autentica e integra, "
+            "ma la matricola non è presente."
+        )
+    else:
+        print(
+            "\nVERIFICA FALLITA: "
+            "non è possibile confermare "
+            "l'autenticità o l'integrità "
+            "della lista."
+        )
 
 def print_result(document: dict) -> None:
     result = document["result"]
@@ -350,7 +433,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    _, sa, ae = create_system(reset=True)
+    segreteria, sa, ae = create_system(
+        reset=True
+    )
 
     if args.self_test:
         ok = demo_complete(sa, ae)
@@ -360,16 +445,19 @@ def main() -> None:
     print("Sistema inizializzato e file JSON di setup generati.")
 
     while True:
-        print("""
-===== SISTEMA DI VOTO ELETTRONICO =====
-1. Vota con login studente
-2. Mostra Bulletin Board
-3. Area Autorità Elettorale
-4. Verifica ricevuta
-5. Demo completa automatica
-6. Mostra credenziali demo
-7. Esci
-""")
+        print(
+            """
+        ===== SISTEMA DI VOTO ELETTRONICO =====
+        1. Vota con login studente
+        2. Mostra Bulletin Board
+        3. Area Autorità Elettorale
+        4. Verifica ricevuta
+        5. Demo completa automatica
+        6. Mostra credenziali demo
+        7. Verifica inclusione nella lista elettorale
+        8. Esci
+        """
+        )
         choice = input("Scelta: ").strip()
 
         if choice == "1":
@@ -395,6 +483,11 @@ def main() -> None:
         elif choice == "6":
             show_credentials()
         elif choice == "7":
+            verify_roster_inclusion_flow(
+                segreteria
+            )
+
+        elif choice == "8":
             break
         else:
             print("Scelta non valida")
