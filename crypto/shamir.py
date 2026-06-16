@@ -30,31 +30,58 @@ def shamir_split(secret: bytes, n: int, threshold: int) -> List[Tuple[int, List[
 def shamir_reconstruct(
     shares: List[Tuple[int, List[int]]],
     secret_length: int,
+    threshold: int,
 ) -> bytes:
-    if len(shares) < 2:
+
+    if len(shares) < threshold:
         raise ValueError("Quote insufficienti")
+
     if len({x for x, _ in shares}) != len(shares):
         raise ValueError("Quote duplicate")
 
     output: List[int] = []
+
     for byte_index in range(secret_length):
         value = 0
+
         for i, (xi, yi_values) in enumerate(shares):
             if len(yi_values) != secret_length:
-                raise ValueError("Lunghezza quota non valida")
+                raise ValueError(
+                    "Lunghezza quota non valida"
+                )
+
             numerator = 1
             denominator = 1
+
             for j, (xj, _) in enumerate(shares):
                 if i != j:
-                    numerator = (numerator * (-xj)) % SHAMIR_FIELD
-                    denominator = (denominator * (xi - xj)) % SHAMIR_FIELD
+                    numerator = (
+                        numerator * (-xj)
+                    ) % SHAMIR_FIELD
+
+                    denominator = (
+                        denominator * (xi - xj)
+                    ) % SHAMIR_FIELD
+
             lagrange = (
                 numerator
-                * pow(denominator % SHAMIR_FIELD, -1, SHAMIR_FIELD)
+                * pow(
+                    denominator % SHAMIR_FIELD,
+                    -1,
+                    SHAMIR_FIELD,
+                )
             )
-            value = (value + yi_values[byte_index] * lagrange) % SHAMIR_FIELD
+
+            value = (
+                value
+                + yi_values[byte_index] * lagrange
+            ) % SHAMIR_FIELD
 
         if value > 255:
-            raise ValueError("Ricostruzione Shamir non valida")
+            raise ValueError(
+                "Ricostruzione Shamir non valida"
+            )
+
         output.append(value)
+
     return bytes(output)

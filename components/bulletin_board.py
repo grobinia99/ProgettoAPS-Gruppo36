@@ -16,8 +16,8 @@ from storage.json_utils import atomic_write_json
 
 
 class BulletinBoard:
-    def __init__(self, ae_private_key):
-        self.ae_private_key = ae_private_key
+    def __init__(self, signing_private_key):
+        self.signing_private_key = signing_private_key
         self.records: List[BallotRecord] = []
         self.closed = False
         self._lock = threading.Lock()
@@ -119,7 +119,10 @@ class BulletinBoard:
         }
         document = {
             "checkpoint": checkpoint,
-            "signature": sign_json(self.ae_private_key, checkpoint),
+            "signature": sign_json(
+                self.signing_private_key,
+                checkpoint,
+            ),
             "signature_algorithm": "RSA-PSS-SHA256",
         }
         atomic_write_json(CHECKPOINT_FILE, document)
@@ -147,7 +150,10 @@ class BulletinBoard:
             }
             document = {
                 "closure": closure,
-                "signature": sign_json(self.ae_private_key, closure),
+                "signature": sign_json(
+                    self.signing_private_key,
+                    closure,
+                ),
                 "signature_algorithm": "RSA-PSS-SHA256",
             }
             atomic_write_json(CLOSURE_FILE, document)
