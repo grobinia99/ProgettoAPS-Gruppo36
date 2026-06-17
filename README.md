@@ -44,4 +44,8 @@ premere tasto 6 per tornare a menu generale
 
 Out menu AE
 
-premere tasto 7 per terminare il codice
+premere tasto 7 per verificare l'inclusione di una matricola nella lisat della segreteria
+
+premere tasto 8 per eseguire test automatici di sicurezza
+
+premere tasto 9 per terminare il codice
