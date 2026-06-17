@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import List
 
+from security_tests import run_all_security_tests
 from actors.authentication_authority import AuthenticationAuthority
 from actors.electoral_authority import ElectoralAuthority
 from actors.segreteria import Segreteria
@@ -455,9 +456,11 @@ def main() -> None:
         5. Demo completa automatica
         6. Mostra credenziali demo
         7. Verifica inclusione nella lista elettorale
-        8. Esci
+        8. Esegui test automatici di sicurezza
+        9. Esci
         """
         )
+
         choice = input("Scelta: ").strip()
 
         if choice == "1":
@@ -488,7 +491,37 @@ def main() -> None:
             )
 
         elif choice == "8":
+            confirm = input(
+                "I test rigenerano più volte i file JSON. "
+                "Continuare? [s/N]: "
+            ).strip().lower()
+
+            if confirm == "s":
+                all_passed = (
+                    run_all_security_tests(
+                        create_system
+                    )
+                )
+
+                print(
+                    "\nSuite di sicurezza superata:",
+                    all_passed,
+                )
+
+                # I test hanno rigenerato i file globali.
+                # Ricreiamo il sistema utilizzato dal menu,
+                # così memoria e JSON tornano allineati.
+                segreteria, sa, ae = create_system(
+                    reset=True
+                )
+
+                print(
+                    "Sistema principale reinizializzato."
+                )
+
+        elif choice == "9":
             break
+
         else:
             print("Scelta non valida")
 
